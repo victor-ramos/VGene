@@ -8,9 +8,13 @@ tabPanel("Submit data",
                     fileInput('tsv_file', 'TSV file', multiple = FALSE, accept = c(".tsv") ),
                     
                     conditionalPanel("output.databasesPanel", checkboxGroupInput("databases", "Compare to:",
-                                                                                 c("Repertoire of healthy individuals" = "database",
-                                                                                   "COVID Conv. 1.3m" = "cov_1.3m",
-                                                                                   "COVID Conv. 6m" = "cov_1.3m"))),
+                                                                                 c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
+                                                                                   "COVID Conv. 1.3m" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
+                                                                                   "COVID Conv. 6.2m" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",
+                                                                                   "COVID Conv. 1y - Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Vaccinees_freq",
+                                                                                   "COVID Conv. 1y - Non-Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Non_vaccinees_freq",
+                                                                                   "COVID Conv. 1y - Combined" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq"
+                                                                                   ))),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
                     # actionButton("ssh_bt", "Run")

@@ -1,6 +1,4 @@
-
-
-rv = reactiveValues(rv.transfer.handle = NULL, tsv.file = "", done = 0, folder.name = "")
+rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "~/GitHub/VGene/database/" )
 
 rename.files = function (x, folder.name){
     file.copy(from = x[4], to = paste0(folder.name, x[1]))
@@ -15,6 +13,7 @@ inputDataReactive <- reactive({
 output$databasesPanel <- reactive({
     return(!is.null(inputDataReactive()))
 })
+
 outputOptions(output, 'databasesPanel', suspendWhenHidden=FALSE)
 
 inputDataReactiveCheckBox <- reactive({
@@ -29,15 +28,12 @@ output$fileUploaded <- reactive({
 
 outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
 
-
-
-
 observe({
-    if (rv$done == 0) {
-        # plots = list.files( rv$folder.name, pattern = "*.svg" ,full.names = T)
-        plots = c("/tmp/v_gene_freq-2021-11-02_18_36_37/IgG_frequency_plot.svg",
-                  "/tmp/v_gene_freq-2021-11-02_18_36_37/IgK_frequency_plot.svg",
-                  "/tmp/v_gene_freq-2021-11-02_18_36_37/IgL_frequency_plot.svg")
+    if (rv$done == 1) {
+        plots = list.files( rv$folder.name, pattern = "*.svg" ,full.names = T)
+        # plots = c("/tmp/v_gene_freq-2021-11-02_18_36_37/IgG_frequency_plot.svg",
+        #           "/tmp/v_gene_freq-2021-11-02_18_36_37/IgK_frequency_plot.svg",
+        #           "/tmp/v_gene_freq-2021-11-02_18_36_37/IgL_frequency_plot.svg")
         
         output$data_panel_teste = renderUI({
             
@@ -63,7 +59,7 @@ observe({
 })
 
 output$restart_button = renderUI({
-    if (rv$done == 0) {
+    if (rv$done == 1) {
         shinydashboard::box(
             value = 'data_panel2',
             style = 'info',
@@ -79,47 +75,57 @@ output$restart_button = renderUI({
     }
 })
 
-
 observeEvent(input$new_analysis, {
     js$reload();
 })
 
+observe({
+    if(length(input$databases) > 2){
+        updateCheckboxGroupInput(session, "databases", selected= tail(input$databases,2))
+    }
+    
+})
+
 ################################################################################
 
-get.barplot.only = function ( x.freq.filtered, order.bars.by = "uploaded_file", sig.diffences.only = sig.diffences.only ) {
+get.barplot.only = function ( x.freq.filtered, order.bars.by = "", sig.diffences.only = sig.diffences.only ) {
     
     x.freq.filtered = as.data.frame(x.freq.filtered)
     
     plots.list = list()
     
     color = c(rgb(221,129,65, maxColorValue = 255), rgb(82,113,177, maxColorValue = 255), rgb(110, 189, 169, maxColorValue = 255))
-    names(color) = unique(x.freq.filtered$Ident)
+    names(color) = unique(x.freq.filtered$IDENT)
     
-    for (chain in unique(x.freq.filtered$Class)) {
+    for (chain in unique(x.freq.filtered$ISOTYPE)) {
         
-        subset.genes = subset(x.freq.filtered, Class == chain) %>% group_by(V_CALL) %>% tally() %>% filter(n == length(unique(x.freq.filtered$Ident)) ) %>% pull(V_CALL)
+        subset.genes = subset(x.freq.filtered, ISOTYPE == chain) %>% 
+            group_by(V_CALL) %>% 
+            tally() %>%
+            filter(n == length(unique( x.freq.filtered$IDENT )) ) %>%
+            pull(V_CALL)
         
         if (length(subset.genes) != 0 ) {
             
-            subset.data = x.freq.filtered %>% filter(Class == chain, V_CALL %in% subset.genes )
-            t = subset.data %>% arrange(freq, Ident)
+            subset.data = x.freq.filtered %>% filter(ISOTYPE == chain, V_CALL %in% subset.genes )
+            t = subset.data %>% arrange(freq, IDENT)
             
-            top.20.genes = (t %>% filter(Ident == order.bars.by) %>% arrange(desc(freq)) %>% pull(V_CALL))[1:20]
+            top.20.genes = (t %>% filter(IDENT == order.bars.by) %>% arrange(desc(freq)) %>% pull(V_CALL))[1:20]
             t = subset(t, V_CALL %in% top.20.genes)
             
-            t$V_CALL = factor(t$V_CALL, levels = unique( subset(subset.data, Ident == order.bars.by) %>% arrange(freq) %>% pull(V_CALL)))
-            t$Ident = factor(t$Ident, levels =  unique(t$Ident) )
+            t$V_CALL = factor(t$V_CALL, levels = unique( subset(subset.data, IDENT == order.bars.by) %>% arrange(freq) %>% pull(V_CALL)))
+            t$IDENT = factor(t$IDENT, levels =  unique(t$IDENT) )
             
             subset.data.p.val = sig.diffences.only[[chain]]
             subset.data.p.val = subset(subset.data.p.val, V_CALL %in% as.character(t$V_CALL))
-            subset.data.p.val$V_CALL = factor(subset.data.p.val$V_CALL, levels = subset(t, Ident == order.bars.by) %>% pull(V_CALL))
+            subset.data.p.val$V_CALL = factor(subset.data.p.val$V_CALL, levels = subset(t, IDENT == order.bars.by) %>% pull(V_CALL))
             
             colors = c("#000000", "#FF0000", "#0000FF")
             # names(colors) = c("1y_Vaccinees_vs_1y_Non-Vaccinees", "1y_Vaccinees_vs_Conv_1.3m", "1y_Non-Vaccinees_vs_Conv_1.3m")
             names(colors) = as.character( unique( subset.data.p.val$binomial_test ) )
             
             plots.list[[chain]] = ggplot(data = t ,aes(x = V_CALL, y = freq) ) +
-                geom_bar(aes(fill=Ident), stat = "identity", position=position_dodge() ) + 
+                geom_bar(aes(fill=IDENT), stat = "identity", position=position_dodge() ) + 
                 scale_fill_manual(values = color, drop = FALSE) + 
                 scale_color_manual(values = colors) +
                 coord_flip(expand = FALSE, ylim = c(0, max(t$freq) + 0.5 )) +
@@ -140,7 +146,7 @@ get.barplot.only = function ( x.freq.filtered, order.bars.by = "uploaded_file", 
         
     }
     
-    return(plots.list)
+    return( plots.list )
     
 }
 
@@ -168,19 +174,25 @@ correct.p.value.and.select.sig = function ( binom.test.tbl ) {
     
 }
 
-fix.constant.call = function ( x ) {
+generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
     
-    light.chains.genes = c("IGK", "IGL")
-    
-    for (chain in light.chains.genes) {
-        x[ grep( chain,  x$V_Gene), "Isotype" ] = gsub("IG","Ig", chain)
+    check.header = function( tsv.obj ) {
+        
+        check = unique(  c("CDR3_AA", "V_CALL","ISOTYPE") %in% colnames(tsv.obj))
+        
+        if ( length(check) == 1 ) {
+            
+            if (check == TRUE) {
+                return( TRUE )    
+            } else {
+                return( FALSE )
+            }
+            
+        } else {
+            return( FALSE )
+        }
+        
     }
-    
-    return(x)
-    
-}
-
-generate.freq.plots = function( tsv.file.uploaded, databases ) {
     
     binomial.test.parallel = function ( v.gene, ig.counts.per.group, isotype, total.per.group ) {
         
@@ -190,20 +202,20 @@ generate.freq.plots = function( tsv.file.uploaded, databases ) {
         
         ig.counts.per.group.as.df = as.data.frame( ig.counts.per.group )
         
-        ig.counts.per.group.as.df.isotype = ig.counts.per.group %>% filter( Class == isotype )
+        ig.counts.per.group.as.df.isotype = ig.counts.per.group %>% filter( ISOTYPE == isotype )
         
-        groups.count = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene ) %>% pull(Ident) %>% length()
+        groups.count = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene ) %>% pull(IDENT) %>% length()
         
-        ig.counts.per.group %>% group_by(Ident) %>% tally()
+        ig.counts.per.group %>% group_by(IDENT) %>% tally()
         
         if ( groups.count >= 2 ) {
             
-            groups.v.gene = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene ) %>% pull( Ident )
+            groups.v.gene = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene ) %>% pull( IDENT )
             groups.comb = combn( groups.v.gene, 2 )
             
             for (i in 1:ncol(groups.comb)) {
                 
-                if ( total.per.group %>% filter(Ident ==  groups.comb[1,i] ) %>% pull(n) > total.per.group %>% filter(Ident ==  groups.comb[2,i] ) %>% pull(n) ) {
+                if ( total.per.group %>% filter(IDENT ==  groups.comb[1,i] ) %>% pull(n) > total.per.group %>% filter(IDENT ==  groups.comb[2,i] ) %>% pull(n) ) {
                     group.2 = groups.comb[1,i] 
                     group.1 = groups.comb[2,i] 
                 } else {
@@ -218,10 +230,10 @@ generate.freq.plots = function( tsv.file.uploaded, databases ) {
                 #   group.2 = groups.comb[2,i] 
                 # }
                 
-                v.gene.repertoire.count = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene, Ident == group.1) %>% pull(n)
-                total.v.seq.repertoire = ig.counts.per.group.as.df %>% filter(Class == isotype, Ident == group.1) %>% pull(n) %>% sum()
-                v.gene.srp.count = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene, Ident == group.2) %>% pull(n)
-                total.v.seq.srp = ig.counts.per.group.as.df %>% filter(Class == isotype, Ident == group.2) %>% pull(n) %>% sum()
+                v.gene.repertoire.count = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene, IDENT == group.1) %>% pull(n)
+                total.v.seq.repertoire = ig.counts.per.group.as.df %>% filter(ISOTYPE == isotype, IDENT == group.1) %>% pull(n) %>% sum()
+                v.gene.srp.count = ig.counts.per.group.as.df.isotype %>% filter( V_CALL == v.gene, IDENT == group.2) %>% pull(n)
+                total.v.seq.srp = ig.counts.per.group.as.df %>% filter(ISOTYPE == isotype, IDENT == group.2) %>% pull(n) %>% sum()
                 
                 binom.test.result = binom.test(x = v.gene.repertoire.count, n = total.v.seq.repertoire, p = (v.gene.srp.count / total.v.seq.srp), alternative = "two.sided")
                 
@@ -244,55 +256,76 @@ generate.freq.plots = function( tsv.file.uploaded, databases ) {
         
     }
     
-    # tsv.obj = read.delim( tsv.file.uploaded, header = T )
-    # tsv.modif = tsv.obj %>% dplyr::select( V_CALL, cdr3_aa ) %>% 
-    #     mutate(Class = case_when( grepl("IGH", V_CALL) ~ "HC",
-    #                               grepl("IGK", V_CALL) ~ "IgK",
-    #                               grepl("IGL", V_CALL) ~ "IgL"),
-    #            Ident = "uploaded_file") %>%
-    #     filter(cdr3_aa != "")
-    #     
+    tsv.obj = read.delim( tsv.file.uploaded, header = T )
+    colnames(tsv.obj) = toupper(colnames(tsv.obj))
     
-    tsv.modif = read.delim("~/Dropbox/Rockefeller/Analysis/Vinci/barplot_1y_vacc_and_non-vac_and_conv_1.3m/Repertoire_Heavy_and_Light_1y_and_1.3m.txt", header = F)
-    colnames(tsv.modif) = c("V_CALL", "cdr3_aa", "Class", "Ident")
-    tsv.modif = tsv.modif %>% filter(cdr3_aa != "", Ident != "") %>% mutate(Ident = gsub("1y_Vaccinees", "uploaded_file", Ident))
-    
-    
-    total.uploaded = nrow(tsv.obj)
-    filtered.out = total.uploaded - nrow(tsv.modif)
-    
-    total.per.group = tsv.modif %>% group_by(Ident) %>% tally()
-    
-    #### Selecting unique shared genes
-    v.genes.repertoire = tsv.modif %>% group_by(V_CALL, Ident) %>% 
-        tally() %>% 
-        filter(n >= length(unique(tsv.modif$Ident))) %>%
-        pull(V_CALL) %>% 
-        unique()
-    
-    ig.counts.per.group = tsv.modif %>% group_by(V_CALL, Class, Ident) %>% tally()
-    result.list.binomial = list()
-    for (isotype in unique(ig.counts.per.group$Class)) {
+    if ( check.header( tsv.obj = tsv.obj ) ) {
         
-        cl = parallel::makeCluster(1, setup_strategy = "sequential")
-        registerDoParallel(cl)
-        binom.test.tbl = foreach( i = 1:length(v.genes.repertoire), .combine = rbind ) %dopar%{ 
-            binomial.test.parallel( v.gene = v.genes.repertoire[i], ig.counts.per.group = ig.counts.per.group, isotype = isotype, total.per.group = total.per.group )
+        tsv.obj = tsv.obj %>% mutate(ISOTYPE = case_when( grepl("IGH", V_CALL) ~ "IgG",
+                                                grepl("IGL", V_CALL) ~ "IgL",
+                                                grepl("IGK", V_CALL) ~ "IgK",
+                                                ) )
+        
+        tsv.obj$V_CALL = gsub("(^IG\\S+)\\*.*","\\1", tsv.obj$V_CALL)
+        tsv.obj$V_CALL = gsub("(^IG\\S+)D","\\1", tsv.obj$V_CALL)
+        
+        tsv.obj = tsv.obj %>% mutate( IDENT = "uploaded_file") %>%
+            filter(CDR3_AA != "")
+        
+        tsv.obj = tsv.obj %>% group_by(V_CALL, ISOTYPE, IDENT) %>%
+            tally() %>% 
+            group_by(IDENT, ISOTYPE) %>%
+            mutate(freq = (n / sum(n)) * 100 )
+        
+        
+        freq.files.list = lapply(selected.databases, function(x){
+            freq.file = read.table( paste0( rv$databases.folder, x, ".txt"), header = T )
+            colnames(freq.file)[1:3] = toupper(colnames(freq.file))[1:3]
+            
+            return(freq.file)
+        } )
+        freq.files = do.call("rbind", freq.files.list)
+        
+        tsv.modif = as.data.frame(rbind(tsv.obj, freq.files)) %>% mutate(ISOTYPE = toupper(ISOTYPE))
+        
+        # total.uploaded = nrow(tsv.obj)
+        # filtered.out = total.uploaded - nrow(tsv.modif)
+        
+        total.per.group = tsv.modif %>% group_by(IDENT) %>% tally()
+        
+        #### Selecting shared genes
+        v.genes.repertoire = tsv.modif %>% group_by(V_CALL) %>% 
+            tally() %>% 
+            filter(n >= length(unique(tsv.modif$IDENT)) -1 ) %>%
+            pull(V_CALL) %>% 
+            unique()
+        
+        ig.counts.per.group = tsv.modif %>% group_by(V_CALL, ISOTYPE, IDENT) %>% tally()
+        result.list.binomial = list()
+        for (isotype in unique(ig.counts.per.group$ISOTYPE)) {
+            
+            cl = parallel::makeCluster(1, setup_strategy = "sequential")
+            registerDoParallel(cl)
+            binom.test.tbl = foreach( i = 1:length(v.genes.repertoire), .combine = rbind ) %dopar%{ 
+                binomial.test.parallel( v.gene = v.genes.repertoire[i], ig.counts.per.group = ig.counts.per.group, isotype = isotype, total.per.group = total.per.group )
+            }
+            stopCluster(cl)  
+            
+            result.list.binomial[[ isotype ]] = binom.test.tbl
+            
         }
-        stopCluster(cl)  
         
-        result.list.binomial[[ isotype ]] = binom.test.tbl
+        sig.diffences.only = parallel::mclapply(result.list.binomial, correct.p.value.and.select.sig, mc.cores = length(result.list.binomial))
         
+        x.filter = tsv.modif %>% filter( V_CALL %in% v.genes.repertoire )
+        
+        plots.list = get.barplot.only( x.freq.filtered = x.filter, sig.diffences.only = sig.diffences.only, order.bars.by = "uploaded_file" )
+        
+        return( plots.list )
+        
+    } else {
+        shinyalert("Unexpected header", "sColumns should be V_CALL, cdr3_aa and Isotype", type = "error")
     }
-    
-    sig.diffences.only = mclapply(result.list.binomial, correct.p.value.and.select.sig, mc.cores = length(result.list.binomial))
-    
-    x.filter = tsv.modif %>% filter( V_CALL %in% v.genes.repertoire )
-    x.freq = tsv.modif %>% group_by(V_CALL, Class, Ident) %>% tally() %>% group_by(Ident, Class) %>% mutate(freq = (n / sum(n)) * 100 )
-    
-    plots.list = get.barplot.only( x.freq.filtered = x.freq, sig.diffences.only = sig.diffences.only )
-    
-    return( plots.list )
     
 }
 
@@ -318,7 +351,7 @@ observeEvent(input$ssh_bt, {
     
     selected.databases = input$databases
     
-    plots.list = generate.freq.plots( tsv.file.uploaded, selected.databases )
+    plots.list = generate.freq.plots( tsv.file.uploaded = rv$tsv.file, selected.databases )
     
     lapply(names(plots.list), function(x){
         svglite::svglite(filename=paste(dirname(folder.name),"/",x,"_frequency_plot.svg",sep=""))
@@ -327,6 +360,8 @@ observeEvent(input$ssh_bt, {
     })
     
     rv$done = 1
+    
+    shinyalert("Success!", "Click on the images to download them", type = "success")
     
     
 })
