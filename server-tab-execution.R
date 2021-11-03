@@ -44,9 +44,10 @@ observe({
             do.call(tabBox, c(id = "tabset1",
                               lapply(plots, function(x) {
                                   tabPanel( paste0( gsub("(\\S+)_frequency.*","\\1", basename(x)) ),
-                                            shinydashboard::box(
+                                            shinydashboard::box(style = 'info',height = 800,
                                                 value = paste0("panel_",gsub("(\\S+)_frequency.*","\\1", basename(x))  ),
-                                                imageOutput(paste0("img_",gsub("(\\S+)_frequency.*","\\1", basename(x)) )))
+                                                imageOutput(paste0("img_",gsub("(\\S+)_frequency.*","\\1", basename(x)) ))
+                                            )
                                   )
                               })))
         })
