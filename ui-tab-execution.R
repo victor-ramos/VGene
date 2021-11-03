@@ -7,7 +7,7 @@ tabPanel("Submit data",
                     
                     fileInput('tsv_file', 'TSV file', multiple = FALSE, accept = c(".tsv") ),
                     
-                    conditionalPanel("output.databasesPanel", checkboxGroupInput("databases", "Compare to:",
+                    conditionalPanel("output.databasesPanel", checkboxGroupInput("databases", "Compare to ( Restricted up to 2 options ): ",
                                                                                  c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
                                                                                    "COVID Conv. 1.3m" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
                                                                                    "COVID Conv. 6.2m" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",

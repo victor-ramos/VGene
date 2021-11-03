@@ -261,6 +261,7 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
     
     if ( check.header( tsv.obj = tsv.obj ) ) {
         
+        # Remove this from final version
         tsv.obj = tsv.obj %>% mutate(ISOTYPE = case_when( grepl("IGH", V_CALL) ~ "IgG",
                                                 grepl("IGL", V_CALL) ~ "IgL",
                                                 grepl("IGK", V_CALL) ~ "IgK",
