@@ -314,7 +314,9 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
             pull(V_CALL) %>% 
             unique()
         
-        ig.counts.per.group = tsv.modif %>% group_by(V_CALL, ISOTYPE, IDENT) %>% tally()
+        
+        ig.counts.per.group = tsv.modif %>% group_by( V_CALL, ISOTYPE, IDENT ) %>% summarise(n = sum(n))
+        # ig.counts.per.group = tsv.modif %>% group_by(V_CALL, ISOTYPE, IDENT) %>% tally()
         result.list.binomial = list()
         for (isotype in unique(ig.counts.per.group$ISOTYPE)) {
             
