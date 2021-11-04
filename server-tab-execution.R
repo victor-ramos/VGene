@@ -29,7 +29,7 @@ output$fileUploaded <- reactive({
 outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
 
 observe({
-    if (rv$done == 1) {
+    if (rv$done == 1 ) {
         plots = list.files( rv$folder.name, pattern = "*.svg" ,full.names = T)
         # plots = c("/tmp/v_gene_freq-2021-11-02_18_36_37/IgG_frequency_plot.svg",
         #           "/tmp/v_gene_freq-2021-11-02_18_36_37/IgK_frequency_plot.svg",
@@ -59,7 +59,7 @@ observe({
 })
 
 output$restart_button = renderUI({
-    if (rv$done == 1) {
+    if (rv$done == 1 | rv$done == "error") {
         shinydashboard::box(
             value = 'data_panel2',
             style = 'info',
@@ -121,7 +121,6 @@ get.barplot.only = function ( x.freq.filtered, order.bars.by = "", sig.diffences
             subset.data.p.val$V_CALL = factor(subset.data.p.val$V_CALL, levels = subset(t, IDENT == order.bars.by) %>% pull(V_CALL))
             
             colors = c("#000000", "#FF0000", "#0000FF")
-            # names(colors) = c("1y_Vaccinees_vs_1y_Non-Vaccinees", "1y_Vaccinees_vs_Conv_1.3m", "1y_Non-Vaccinees_vs_Conv_1.3m")
             names(colors) = as.character( unique( subset.data.p.val$binomial_test ) )
             
             plots.list[[chain]] = ggplot(data = t ,aes(x = V_CALL, y = freq) ) +
@@ -183,12 +182,28 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
         if ( length(check) == 1 ) {
             
             if (check == TRUE) {
+                
+                tsv.obj$ISOTYPE = toupper( tsv.obj$ISOTYPE )
+                check.isotypes = unique( unique(tsv.obj$ISOTYPE) %in% c("IGG","IGM","IGA", "IGH", "IGL", "IGK") )
+                
+                if ( length(check.isotypes) == 1) {
+                    return( TRUE )
+                } else {
+                    wrong.isotype = paste0( unique(tsv.obj$ISOTYPE)[ !unique(tsv.obj$ISOTYPE) %in% c("IGG","IGM","IGA", "IGH", "IGL", "IGK") ], collapse = ", " )
+                    rv$done = "error"
+                    shinyalert("Unexpected isotype specified", paste0("Wrong isotype(s): ", wrong.isotype), type = "error")
+                    return(FALSE)
+                }
+                
+                
                 return( TRUE )    
             } else {
                 return( FALSE )
             }
             
         } else {
+            rv$done = "error"
+            shinyalert("Unexpected header", "Columns should be V_CALL, cdr3_aa and Isotype", type = "error")
             return( FALSE )
         }
         
@@ -261,19 +276,16 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
     
     if ( check.header( tsv.obj = tsv.obj ) ) {
         
-        # Remove this from final version
-        tsv.obj = tsv.obj %>% mutate(ISOTYPE = case_when( grepl("IGH", V_CALL) ~ "IgG",
-                                                grepl("IGL", V_CALL) ~ "IgL",
-                                                grepl("IGK", V_CALL) ~ "IgK",
-                                                ) )
-        
+        tsv.obj$ISOTYPE = toupper( tsv.obj$ISOTYPE )
         tsv.obj$V_CALL = gsub("(^IG\\S+)\\*.*","\\1", tsv.obj$V_CALL)
         tsv.obj$V_CALL = gsub("(^IG\\S+)D","\\1", tsv.obj$V_CALL)
         
         tsv.obj = tsv.obj %>% mutate( IDENT = "uploaded_file") %>%
             filter(CDR3_AA != "")
         
-        tsv.obj = tsv.obj %>% group_by(V_CALL, ISOTYPE, IDENT) %>%
+        tsv.obj = tsv.obj %>% dplyr::mutate( ISOTYPE = case_when( grepl("IGA|IGG|IGM", ISOTYPE) ~ "IGH",
+                                                                  !grepl("IGA|IGG|IGM", ISOTYPE) ~ ISOTYPE ) ) %>%
+            group_by(V_CALL, ISOTYPE, IDENT) %>%
             tally() %>% 
             group_by(IDENT, ISOTYPE) %>%
             mutate(freq = (n / sum(n)) * 100 )
@@ -288,13 +300,14 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
         freq.files = do.call("rbind", freq.files.list)
         
         tsv.modif = as.data.frame(rbind(tsv.obj, freq.files)) %>% mutate(ISOTYPE = toupper(ISOTYPE))
+        tsv.modif = tsv.modif %>% dplyr::mutate( ISOTYPE = case_when( grepl("IGA|IGG|IGM", ISOTYPE) ~ "IGH",
+                                                                  !grepl("IGA|IGG|IGM", ISOTYPE) ~ ISOTYPE ) )
         
         # total.uploaded = nrow(tsv.obj)
         # filtered.out = total.uploaded - nrow(tsv.modif)
         
-        total.per.group = tsv.modif %>% group_by(IDENT) %>% tally()
+        total.per.group = tsv.modif %>% group_by(IDENT) %>% summarise(n = sum(n))
         
-        #### Selecting shared genes
         v.genes.repertoire = tsv.modif %>% group_by(V_CALL) %>% 
             tally() %>% 
             filter(n >= length(unique(tsv.modif$IDENT)) -1 ) %>%
@@ -322,12 +335,12 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
         
         plots.list = get.barplot.only( x.freq.filtered = x.filter, sig.diffences.only = sig.diffences.only, order.bars.by = "uploaded_file" )
         
+        rv$done = 1
+        
         return( plots.list )
         
-    } else {
-        shinyalert("Unexpected header", "sColumns should be V_CALL, cdr3_aa and Isotype", type = "error")
     }
-    
+
 }
 
 ################################################################################
@@ -354,15 +367,16 @@ observeEvent(input$ssh_bt, {
     
     plots.list = generate.freq.plots( tsv.file.uploaded = rv$tsv.file, selected.databases )
     
-    lapply(names(plots.list), function(x){
-        svglite::svglite(filename=paste(dirname(folder.name),"/",x,"_frequency_plot.svg",sep=""))
-        print(plots.list[[x]])
-        dev.off()
-    })
+    if (rv$done == 1) {
     
-    rv$done = 1
-    
-    shinyalert("Success!", "Click on the images to download them", type = "success")
-    
+        lapply(names(plots.list), function(x){
+            svglite::svglite(filename=paste(dirname(folder.name),"/",x,"_frequency_plot.svg",sep=""))
+            print(plots.list[[x]])
+            dev.off()
+        })
+        
+        shinyalert("Success!", "Click on the images to download them", type = "success")
+              
+    }
     
 })
