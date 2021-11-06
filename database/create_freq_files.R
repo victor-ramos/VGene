@@ -12,7 +12,7 @@ fix.constant.call = function ( x ) {
 
 ###########################################################################################################################
 
-all.files = list.files( "~/GitHub/VGene/database", pattern = "*.txt", full.names = T)
+all.files = list.files( "~/Downloads/vinci/combined/", pattern = "*.txt", full.names = T)
 
 for (file in all.files) {
 
