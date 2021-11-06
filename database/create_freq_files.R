@@ -23,6 +23,7 @@ for (file in all.files) {
   
   # x = subset(x, !(Isotype %in% unique(x$Ident)) )
   # x = subset(x, Isotype %in% c("IgG","IgL","IgK") )
+  x = x %>% filter(Ident != "")
   
   x$Isotype = gsub("IGHG\\d+{1}", "IgG", x$Isotype )
   x$Isotype = gsub("IGH(\\w+{1})", "Ig\\1", x$Isotype )

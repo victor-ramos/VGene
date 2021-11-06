@@ -10,16 +10,21 @@ inputDataReactive <- reactive({
     }
 })
 
-output$databasesPanel <- reactive({
-    return(!is.null(inputDataReactive()))
-})
-
-outputOptions(output, 'databasesPanel', suspendWhenHidden=FALSE)
-
 inputDataReactiveCheckBox <- reactive({
-    if (!is.null(input$databases) & length(input$databases) > 1 ) {
-        return(TRUE)
+    
+    if ( input$execution_mode == 'new_file_mode' ) {
+    
+        if (!is.null(input$databases) & length(input$databases) >= 1 ) {
+            return(TRUE)
+        }
+            
+    } else {
+        if (!is.null(input$databases) & length(input$databases) > 1 ) {
+            return(TRUE)
+        }    
     }
+    
+    
 })
 
 output$fileUploaded <- reactive({

@@ -14,26 +14,21 @@ tabPanel("Submit data",
                                      fileInput('tsv_file', 'TSV file', multiple = FALSE, accept = c(".tsv") )
                     ),
                     
-                    # conditionalPanel("output.databasesPanel", checkboxGroupInput("databases", "Compare to ( Restricted up to 2 options ): ",
-                    #                                                              c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
-                    #                                                                "COVID Conv. 1.3m" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
-                    #                                                                "COVID Conv. 6.2m" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",
-                    #                                                                "COVID Conv. 1y - Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Vaccinees_freq",
-                    #                                                                "COVID Conv. 1y - Non-Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Non_vaccinees_freq",
-                    #                                                                "COVID Conv. 1y - Combined" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq"
-                    #                                                                ))),
-                    
-                    checkboxGroupInput("databases", "Compare to ( 2 options if new file or 3 for pre-calculated freq. ): ",
+   
+                    checkboxGroupInput("databases", "Compare to ( max 2 options if new file or 3 for pre-calculated freq. ): ",
                                        c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
                                          "COVID Conv. 1.3m (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
                                          "COVID Conv. 6.2m (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",
                                          "COVID Conv. 1y - Vaccinees Only (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_1y_Vaccinees_freq",
                                          "COVID Conv. 1y - Non-Vaccinees Only (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_1y_Non_vaccinees_freq",
-                                         "COVID Conv. 1y - Combined (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq"
+                                         "COVID Conv. 1y - Combined (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq",
+                                         "COVID Conv. Combined (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_vacc_and_non_vacc_freq",
+                                         "COVID Conv. Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_vacc_freq",
+                                         "COVID Conv. Non-Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_non_vacc_freq"
                                        )),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
-                    # actionButton("ssh_bt", "Run")
+                    
                     
                   )) #end of the first column
                 )), # end of fluid row 
