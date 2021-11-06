@@ -11,7 +11,7 @@ ui = shiny::fluidPage(
     extendShinyjs(text = jscode, functions = c("reload")),
     theme = shinythemes::shinytheme("flatly"),
     
-    shiny::navbarPage( title = "V Gene Freq",
+    shiny::navbarPage( title = "V Gene Usage",
                        
                        source("ui-tab-start.R",local=TRUE)$value,
                        source("ui-tab-execution.R",local=TRUE)$value
