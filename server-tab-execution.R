@@ -17,7 +17,7 @@ output$databasesPanel <- reactive({
 outputOptions(output, 'databasesPanel', suspendWhenHidden=FALSE)
 
 inputDataReactiveCheckBox <- reactive({
-    if (!is.null(input$databases)) {
+    if (!is.null(input$databases) & length(input$databases) > 1 ) {
         return(TRUE)
     }
 })
@@ -80,8 +80,15 @@ observeEvent(input$new_analysis, {
 })
 
 observe({
-    if(length(input$databases) > 2){
-        updateCheckboxGroupInput(session, "databases", selected= tail(input$databases,2))
+    
+    if ( input$execution_mode == 'database_mode' ) {
+        max = 3
+    } else if ( input$execution_mode == 'new_file_mode' ) {
+        max = 2
+    }
+    
+    if(length(input$databases) > max){
+        updateCheckboxGroupInput(session, "databases", selected= tail(input$databases,max))
     }
     
 })
@@ -173,7 +180,9 @@ correct.p.value.and.select.sig = function ( binom.test.tbl ) {
     
 }
 
-generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
+generate.freq.plots = function( tsv.file.uploaded, selected.databases, execution.mode ) {
+    
+    tsv.obj = NULL
     
     check.header = function( tsv.obj ) {
         
@@ -271,77 +280,84 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases ) {
         
     }
     
-    tsv.obj = read.delim( tsv.file.uploaded, header = T )
-    colnames(tsv.obj) = toupper(colnames(tsv.obj))
-    
-    if ( check.header( tsv.obj = tsv.obj ) ) {
+    if ( execution.mode == 'new_file_mode' ) {
         
-        tsv.obj$ISOTYPE = toupper( tsv.obj$ISOTYPE )
-        tsv.obj$V_CALL = gsub("(^IG\\S+)\\*.*","\\1", tsv.obj$V_CALL)
-        tsv.obj$V_CALL = gsub("(^IG\\S+)D","\\1", tsv.obj$V_CALL)
+        tsv.obj = read.delim( tsv.file.uploaded, header = T )
+        colnames(tsv.obj) = toupper(colnames(tsv.obj))
         
-        tsv.obj = tsv.obj %>% mutate( IDENT = "uploaded_file") %>%
-            filter(CDR3_AA != "")
-        
-        tsv.obj = tsv.obj %>% dplyr::mutate( ISOTYPE = case_when( grepl("IGA|IGG|IGM", ISOTYPE) ~ "IGH",
-                                                                  !grepl("IGA|IGG|IGM", ISOTYPE) ~ ISOTYPE ) ) %>%
-            group_by(V_CALL, ISOTYPE, IDENT) %>%
-            tally() %>% 
-            group_by(IDENT, ISOTYPE) %>%
-            mutate(freq = (n / sum(n)) * 100 )
-        
-        
-        freq.files.list = lapply(selected.databases, function(x){
-            freq.file = read.table( paste0( rv$databases.folder, x, ".txt"), header = T )
-            colnames(freq.file)[1:3] = toupper(colnames(freq.file))[1:3]
+        if ( check.header( tsv.obj = tsv.obj ) ) {
             
-            return(freq.file)
-        } )
-        freq.files = do.call("rbind", freq.files.list)
-        
-        tsv.modif = as.data.frame(rbind(tsv.obj, freq.files)) %>% mutate(ISOTYPE = toupper(ISOTYPE))
-        tsv.modif = tsv.modif %>% dplyr::mutate( ISOTYPE = case_when( grepl("IGA|IGG|IGM", ISOTYPE) ~ "IGH",
-                                                                  !grepl("IGA|IGG|IGM", ISOTYPE) ~ ISOTYPE ) )
-        
-        # total.uploaded = nrow(tsv.obj)
-        # filtered.out = total.uploaded - nrow(tsv.modif)
-        
-        total.per.group = tsv.modif %>% group_by(IDENT) %>% summarise(n = sum(n))
-        
-        v.genes.repertoire = tsv.modif %>% group_by(V_CALL) %>% 
-            tally() %>% 
-            filter(n >= length(unique(tsv.modif$IDENT)) -1 ) %>%
-            pull(V_CALL) %>% 
-            unique()
-        
-        
-        ig.counts.per.group = tsv.modif %>% group_by( V_CALL, ISOTYPE, IDENT ) %>% summarise(n = sum(n))
-        # ig.counts.per.group = tsv.modif %>% group_by(V_CALL, ISOTYPE, IDENT) %>% tally()
-        result.list.binomial = list()
-        for (isotype in unique(ig.counts.per.group$ISOTYPE)) {
+            tsv.obj$ISOTYPE = toupper( tsv.obj$ISOTYPE )
+            tsv.obj$V_CALL = gsub("(^IG\\S+)\\*.*","\\1", tsv.obj$V_CALL)
+            tsv.obj$V_CALL = gsub("(^IG\\S+)D","\\1", tsv.obj$V_CALL)
             
-            cl = parallel::makeCluster(1, setup_strategy = "sequential")
-            registerDoParallel(cl)
-            binom.test.tbl = foreach( i = 1:length(v.genes.repertoire), .combine = rbind ) %dopar%{ 
-                binomial.test.parallel( v.gene = v.genes.repertoire[i], ig.counts.per.group = ig.counts.per.group, isotype = isotype, total.per.group = total.per.group )
-            }
-            stopCluster(cl)  
+            tsv.obj = tsv.obj %>% mutate( IDENT = "uploaded_file") %>%
+                filter(CDR3_AA != "")
             
-            result.list.binomial[[ isotype ]] = binom.test.tbl
+            tsv.obj = tsv.obj %>% dplyr::mutate( ISOTYPE = case_when( grepl("IGA|IGG|IGM", ISOTYPE) ~ "IGH",
+                                                                      !grepl("IGA|IGG|IGM", ISOTYPE) ~ ISOTYPE ) ) %>%
+                group_by(V_CALL, ISOTYPE, IDENT) %>%
+                tally() %>% 
+                group_by(IDENT, ISOTYPE) %>%
+                mutate(freq = (n / sum(n)) * 100 )
             
         }
         
-        sig.diffences.only = parallel::mclapply(result.list.binomial, correct.p.value.and.select.sig, mc.cores = length(result.list.binomial))
-        
-        x.filter = tsv.modif %>% filter( V_CALL %in% v.genes.repertoire )
-        
-        plots.list = get.barplot.only( x.freq.filtered = x.filter, sig.diffences.only = sig.diffences.only, order.bars.by = "uploaded_file" )
-        
-        rv$done = 1
-        
-        return( plots.list )
+        order.bars.by = "uploaded_file"
         
     }
+    
+    freq.files.list = lapply(selected.databases, function(x){
+        freq.file = read.table( paste0( rv$databases.folder, x, ".txt"), header = T )
+        colnames(freq.file)[1:3] = toupper(colnames(freq.file))[1:3]
+        
+        return(freq.file)
+    } )
+    freq.files = do.call("rbind", freq.files.list)
+    
+    tsv.modif = as.data.frame(rbind(tsv.obj, freq.files)) %>% mutate(ISOTYPE = toupper(ISOTYPE))
+    tsv.modif = tsv.modif %>% dplyr::mutate( ISOTYPE = case_when( grepl("IGA|IGG|IGM", ISOTYPE) ~ "IGH",
+                                                                  !grepl("IGA|IGG|IGM", ISOTYPE) ~ ISOTYPE ) )
+    
+    if ( execution.mode == 'database_mode' ) {
+        
+        order.bars.by = unique(tsv.modif$IDENT)[1]
+        
+    }
+    
+    total.per.group = tsv.modif %>% group_by(IDENT) %>% summarise(n = sum(n))
+    
+    v.genes.repertoire = tsv.modif %>% group_by(V_CALL) %>% 
+        tally() %>% 
+        filter(n >= length(unique(tsv.modif$IDENT)) -1 ) %>%
+        pull(V_CALL) %>% 
+        unique()
+    
+    
+    ig.counts.per.group = tsv.modif %>% group_by( V_CALL, ISOTYPE, IDENT ) %>% summarise(n = sum(n))
+    result.list.binomial = list()
+    for (isotype in unique(ig.counts.per.group$ISOTYPE)) {
+        
+        cl = parallel::makeCluster(1, setup_strategy = "sequential")
+        registerDoParallel(cl)
+        binom.test.tbl = foreach( i = 1:length(v.genes.repertoire), .combine = rbind ) %dopar%{ 
+            binomial.test.parallel( v.gene = v.genes.repertoire[i], ig.counts.per.group = ig.counts.per.group, isotype = isotype, total.per.group = total.per.group )
+        }
+        stopCluster(cl)  
+        
+        result.list.binomial[[ isotype ]] = binom.test.tbl
+        
+    }
+    
+    sig.diffences.only = parallel::mclapply(result.list.binomial, correct.p.value.and.select.sig, mc.cores = length(result.list.binomial))
+    
+    x.filter = tsv.modif %>% filter( V_CALL %in% v.genes.repertoire )
+    
+    plots.list = get.barplot.only( x.freq.filtered = x.filter, sig.diffences.only = sig.diffences.only, order.bars.by = order.bars.by )
+    
+    rv$done = 1
+    
+    return( plots.list )
 
 }
 
@@ -361,13 +377,15 @@ observeEvent(input$ssh_bt, {
     rv$folder.name = dirname(folder.name)
     
     dir.create(folder.name, showWarnings = FALSE, recursive = TRUE)
-    apply(tsv.file, 1, rename.files, folder.name)
+    if ( input$execution_mode == "new_file_mode" ) {
+        apply(tsv.file, 1, rename.files, folder.name)    
+    }
     
     rv$tsv.file = list.files(path = folder.name ,pattern = "*.tsv", all.files = T, full.names = T, recursive = T )
     
     selected.databases = input$databases
     
-    plots.list = generate.freq.plots( tsv.file.uploaded = rv$tsv.file, selected.databases )
+    plots.list = generate.freq.plots( tsv.file.uploaded = rv$tsv.file, selected.databases, execution.mode = input$execution_mode )
     
     if (rv$done == 1) {
     

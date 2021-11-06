@@ -5,16 +5,32 @@ tabPanel("Submit data",
                 fluidRow(
                   column(12, wellPanel( 
                     
-                    fileInput('tsv_file', 'TSV file', multiple = FALSE, accept = c(".tsv") ),
+                    radioButtons('execution_mode','Execution mode',
+                                 c('Compare pre-calculated frequencies'="database_mode",
+                                   'Upload new file'="new_file_mode"
+                                 ), selected = 'database_mode'),
                     
-                    conditionalPanel("output.databasesPanel", checkboxGroupInput("databases", "Compare to ( Restricted up to 2 options ): ",
-                                                                                 c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
-                                                                                   "COVID Conv. 1.3m" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
-                                                                                   "COVID Conv. 6.2m" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",
-                                                                                   "COVID Conv. 1y - Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Vaccinees_freq",
-                                                                                   "COVID Conv. 1y - Non-Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Non_vaccinees_freq",
-                                                                                   "COVID Conv. 1y - Combined" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq"
-                                                                                   ))),
+                    conditionalPanel(condition = "input.execution_mode=='new_file_mode'",
+                                     fileInput('tsv_file', 'TSV file', multiple = FALSE, accept = c(".tsv") )
+                    ),
+                    
+                    # conditionalPanel("output.databasesPanel", checkboxGroupInput("databases", "Compare to ( Restricted up to 2 options ): ",
+                    #                                                              c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
+                    #                                                                "COVID Conv. 1.3m" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
+                    #                                                                "COVID Conv. 6.2m" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",
+                    #                                                                "COVID Conv. 1y - Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Vaccinees_freq",
+                    #                                                                "COVID Conv. 1y - Non-Vaccinees Only" = "Repertoire_Heavy_and_Light_1y_Non_vaccinees_freq",
+                    #                                                                "COVID Conv. 1y - Combined" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq"
+                    #                                                                ))),
+                    
+                    checkboxGroupInput("databases", "Compare to ( 2 options if new file or 3 for pre-calculated freq. ): ",
+                                       c("Repertoire of healthy individuals" = "Repertoire_Heavy_and_Light_healthy_database_freq",
+                                         "COVID Conv. 1.3m (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_1.3m_freq",
+                                         "COVID Conv. 6.2m (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_6.2m_freq",
+                                         "COVID Conv. 1y - Vaccinees Only (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_1y_Vaccinees_freq",
+                                         "COVID Conv. 1y - Non-Vaccinees Only (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_1y_Non_vaccinees_freq",
+                                         "COVID Conv. 1y - Combined (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq"
+                                       )),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
                     # actionButton("ssh_bt", "Run")
