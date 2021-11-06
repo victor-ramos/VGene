@@ -1,5 +1,4 @@
-# rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "/home/developer/GitHub/VGene/database/" )
-rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "~/GitHub/VGene/database/" )
+rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "/home/developer/GitHub/VGene/database/" )
 
 rename.files = function (x, folder.name){
     file.copy(from = x[4], to = paste0(folder.name, x[1]))
