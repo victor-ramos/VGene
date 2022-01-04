@@ -12,7 +12,7 @@ fix.constant.call = function ( x ) {
 
 ###########################################################################################################################
 
-all.files = list.files( "~/Downloads/vinci/combined/", pattern = "*.txt", full.names = T)
+all.files = list.files( "~/Dropbox/Rockefeller/Analysis/Vinci/database_v_gene_app/combined/", pattern = "*.txt", full.names = T)
 
 for (file in all.files) {
 
