@@ -1,5 +1,5 @@
-rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "/home/developer/GitHub/VGene/database/" )
-# rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "~/GitHub/VGene/database/" )
+# rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "/home/developer/GitHub/VGene/database/" )
+rv = reactiveValues(tsv.file = "", done = 0, folder.name = "", databases.folder = "~/GitHub/VGene/database/" )
 
 rename.files = function (x, folder.name){
     file.copy(from = x[4], to = paste0(folder.name, x[1]))
@@ -113,9 +113,9 @@ get.barplot.only = function ( x.freq.filtered, order.bars.by = "", sig.diffences
     for (chain in unique(x.freq.filtered$ISOTYPE)) {
         
         subset.genes = subset(x.freq.filtered, ISOTYPE == chain) %>% 
-            group_by(V_CALL) %>% 
-            tally() %>%
-            filter(n == length(unique( x.freq.filtered$IDENT )) ) %>%
+            # group_by(V_CALL) %>% 
+            # tally() %>%
+            # filter(n == length(unique( x.freq.filtered$IDENT )) ) %>%
             pull(V_CALL)
         
         if (length(subset.genes) != 0 ) {
@@ -123,7 +123,8 @@ get.barplot.only = function ( x.freq.filtered, order.bars.by = "", sig.diffences
             subset.data = x.freq.filtered %>% filter(ISOTYPE == chain, V_CALL %in% subset.genes )
             t = subset.data %>% arrange(freq, IDENT)
             
-            top.20.genes = (t %>% filter(IDENT == order.bars.by) %>% arrange(desc(freq)) %>% pull(V_CALL))[1:20]
+            # top.20.genes = (t %>% filter(IDENT == order.bars.by) %>% arrange(desc(freq)) %>% pull(V_CALL))[1:20]
+            top.20.genes = (t %>% filter(IDENT == order.bars.by) %>% arrange(desc(freq)) %>% pull(V_CALL))
             t = subset(t, V_CALL %in% top.20.genes)
             
             t$V_CALL = factor(t$V_CALL, levels = unique( subset(subset.data, IDENT == order.bars.by) %>% arrange(freq) %>% pull(V_CALL)))
