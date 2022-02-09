@@ -329,7 +329,7 @@ generate.freq.plots = function( tsv.file.uploaded, selected.databases, execution
     if ( execution.mode == 'database_mode' ) {
         
         if ("Repertoire_Heavy_and_Light_healthy_database_freq" %in% selected.databases ) {
-            order.bars.by = grep("Conv", tsv.modif$IDENT, value = T, ignore.case = T)[1]
+            order.bars.by = grep("Conv|mRNA", tsv.modif$IDENT, value = T, ignore.case = T)[1]
         } else {
             order.bars.by = unique(tsv.modif$IDENT)[1]    
         }
