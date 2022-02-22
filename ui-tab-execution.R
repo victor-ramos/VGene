@@ -29,9 +29,17 @@ tabPanel("Submit data",
                                          "COVID Conv. Non-Vaccinees Only 1m (anti-NTD antibodies)" = "Repertoire_Heavy_and_Light_Conv_NTD_Non-Vac_1m_final_freq",
                                          "COVID Conv. Non-Vaccinees Only 1y (anti-NTD antibodies)" = "Repertoire_Heavy_and_Light_Conv_NTD_Non-Vac_1y_final_freq",
                                          "COVID Conv. anti-NTD antibodies - 1m and 1y combined" = "Repertoire_Heavy_and_Light_Conv_NTD_1m_1y_freq",
-                                         "Naive Vaccinees (mRNA) 1.3m" = "mRNA_vax_1.3m_freq",
-                                         "Naive Vaccinees (mRNA) 5mo" = "mRNA_vax_5mo_freq",
-                                         "Naive Vaccinees (mRNA) Booster" = "Booster_Vax_gene_freq"
+                                         "COVID Naive Vaccinees (mRNA) 1.3m" = "mRNA_vax_1.3m_freq",
+                                         "COVID Naive Vaccinees (mRNA) 5mo" = "mRNA_vax_5mo_freq",
+                                         "COVID Naive Vaccinees (mRNA) Booster" = "Booster_Vax_gene_freq",
+                                         "COVID AZ. Prime AZ. Boost - 6mo after prime" = "AZ_AZ_vax_6m_freq",
+                                         "COVID AZ. Prime BNT. Boost - 1m after prime" = "AZ_BNT_vax_1m_freq",
+                                         "COVID AZ. Prime BNT. Boost - 6mo after prime" = "AZ_BNT_vax_6m_freq",
+                                         "COVID J&J Vaccinees 1m after prime" = "J&J_RBD_vax_1m_freq",
+                                         "COVID J&J Vaccinees 6mo after prime" = "J&J_RBD_vax_6m_freq",
+                                         "TBEV - BOS" = "TBEV_BOS_freq",
+                                         "TBEV - CZV" = "TBEV_CZV_freq",
+                                         "TBEV - CZ" = "TBEV_CZ_freq"
                                        )),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
