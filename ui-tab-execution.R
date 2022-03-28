@@ -38,8 +38,8 @@ tabPanel("Submit data",
                                          "COVID J&J Vaccinees 1m after prime" = "J&J_RBD_vax_1m_freq",
                                          "COVID J&J Vaccinees 6mo after prime" = "J&J_RBD_vax_6m_freq",
                                          
-                                         "COVID Conv. Vaccinees (mRNA) Breakthrough Delta" = "COVID_Conv_Delta_BT_freq",
-                                         "COVID Conv. Vaccinees (mRNA) Breakthrough Omicron" = "COVID_Conv_Omicron_BT_freq",
+                                         "COVID Conv. Vaccinees (mRNA) Breakthrough Delta" = "Conv_Vac_Breakthrough_Delta_freq",
+                                         "COVID Conv. Vaccinees (mRNA) Breakthrough Omicron" = "Conv_Vac_Breakthrough_Omicron_freq",
                                          
                                          "TBEV - BOS" = "TBEV_BOS_freq",
                                          "TBEV - CZV" = "TBEV_CZV_freq",
