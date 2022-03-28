@@ -37,6 +37,10 @@ tabPanel("Submit data",
                                          "COVID AZ. Prime BNT. Boost - 6mo after prime" = "AZ_BNT_vax_6m_freq",
                                          "COVID J&J Vaccinees 1m after prime" = "J&J_RBD_vax_1m_freq",
                                          "COVID J&J Vaccinees 6mo after prime" = "J&J_RBD_vax_6m_freq",
+                                         
+                                         "COVID Conv. Vaccinees (mRNA) Breakthrough Delta" = "COVID_Conv_Delta_BT_freq",
+                                         "COVID Conv. Vaccinees (mRNA) Breakthrough Omicron" = "COVID_Conv_Omicron_BT_freq",
+                                         
                                          "TBEV - BOS" = "TBEV_BOS_freq",
                                          "TBEV - CZV" = "TBEV_CZV_freq",
                                          "TBEV - CZ" = "TBEV_CZ_freq"
