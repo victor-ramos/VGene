@@ -40,6 +40,9 @@ tabPanel("Submit data",
                                          
                                          "COVID Conv. Vaccinees (mRNA) Breakthrough Delta" = "Conv_Vac_Breakthrough_Delta_freq",
                                          "COVID Conv. Vaccinees (mRNA) Breakthrough Omicron" = "Conv_Vac_Breakthrough_Omicron_freq",
+
+                                         "COVID Naive Vaccinees (3 doses mRNA) Breakthrough Delta" = "V_gene_Delta_BT_freq",
+                                         "COVID Naive Vaccinees (3 doses mRNA) Breakthrough Omicron" = "V_gene_Omicron_BT_freq",
                                          
                                          "TBEV - BOS" = "TBEV_BOS_freq",
                                          "TBEV - CZV" = "TBEV_CZV_freq",
