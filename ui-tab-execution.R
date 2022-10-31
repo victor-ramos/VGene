@@ -46,7 +46,11 @@ tabPanel("Submit data",
                                          
                                          "TBEV - BOS" = "TBEV_BOS_freq",
                                          "TBEV - CZV" = "TBEV_CZV_freq",
-                                         "TBEV - CZ" = "TBEV_CZ_freq"
+                                         "TBEV - CZ" = "TBEV_CZ_freq",
+
+                                         "75yr 3 doses mRNA vax" = "75yr_3_doses_mRNA_vax_freq",
+                                         "75yr 4 doses mRNA vax" = "75yr_4_doses_mRNA_vax_freq",
+                                         "75yr Vax3 6mo" = "75yr_Vax3_6mo_freq"
                                        )),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
