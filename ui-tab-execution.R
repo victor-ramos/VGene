@@ -24,7 +24,10 @@ tabPanel("Submit data",
                                          "COVID Conv. 1y - Combined (anti-RBD antibodies)" = "Repertoire_Heavy_and_Light_Conv_1y_combined_freq",
                                          "COVID Conv. Combined (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_vacc_and_non_vacc_freq",
                                          "COVID Conv. Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_vacc_freq",
-                                         "COVID Conv. Non-Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_non_vacc_freq"
+                                         "COVID Conv. Non-Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_non_vacc_freq",
+                                         "Homotypic (mouse)" = "homotypic_vgenes_freq",
+                                         "Mosaic (mouse)" = "mosaic_vgenes_freq"
+                                         "mRNA (mouse)" = "mRNA_vgenes_freq"
                                        )),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
