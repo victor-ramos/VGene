@@ -26,7 +26,7 @@ tabPanel("Submit data",
                                          "COVID Conv. Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_vacc_freq",
                                          "COVID Conv. Non-Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_non_vacc_freq",
                                          "Homotypic (mouse)" = "homotypic_vgenes_freq",
-                                         "Mosaic (mouse)" = "mosaic_vgenes_freq"
+                                         "Mosaic (mouse)" = "mosaic_vgenes_freq",
                                          "mRNA (mouse)" = "mRNA_vgenes_freq"
                                        )),
                     
