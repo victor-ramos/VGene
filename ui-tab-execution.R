@@ -27,7 +27,8 @@ tabPanel("Submit data",
                                          "COVID Conv. Non-Vaccinees Only (anit-NTD antibodies)" = "Repertoire_Heavy_and_Light_NTD_non_vacc_freq",
                                          "Homotypic (mouse)" = "homotypic_vgenes_freq",
                                          "Mosaic (mouse)" = "mosaic_vgenes_freq"
-                                         "mRNA (mouse)" = "mRNA_vgenes_freq"
+                                         "mRNA (mouse)" = "mRNA_vgenes_freq",
+                                         "Pre Boost Memory GC (rhesus)" = "monkey_pre_boost_memory_GC_freq"
                                        )),
                     
                     conditionalPanel("output.fileUploaded", actionButton("ssh_bt", "Run"))
