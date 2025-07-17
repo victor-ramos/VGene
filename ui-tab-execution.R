@@ -59,7 +59,11 @@ tabPanel("Submit data",
                                          "Mosaic (mouse)" = "mosaic_vgenes_freq",
                                          "mRNA (mouse)" = "mRNA_vgenes_freq",
 
-                                         "Pre Boost Memory GC (rhesus)" = "monkey_pre_boost_memory_GC_freq"
+                                         "Pre Boost Memory GC (rhesus)" = "monkey_pre_boost_memory_GC_freq",
+
+					"Beta (mouse)" = "beta_vgenes_2025_freq",
+					"Mosaic8b (mouse)" = "Mosaic8b_vgenes_2025_freq",
+					"mRNA_new (mouse)" = "mrna_vgenes_2025_freq"
                                          
                                        )),
                     
